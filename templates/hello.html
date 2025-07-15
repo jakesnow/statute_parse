@@ -1,0 +1,42 @@
+<head>
+  <title>Indent California</title>
+  <style>
+
+    .form-submit-button {
+      background: #0066A2;
+      color: white;
+      border-style: outset;
+      border-color: #0066A2;
+      height: 50px;
+      width: 100px;
+      font: bold 15px arial, sans-serif;
+      text-shadow:none;
+    }
+  </style>
+</head>
+<p style="font-family:Futura; font-size:60px" align="center"><b>INDENT CALIFORNIA</b></p>
+<center>
+  <p>The field below accepts any California statute URL (i.e., from <a href = "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml">California Leginfo</a>):</p>
+<p>
+  For example, try reformatting the <a href="https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=7.&chapter=3.5.&lawCode=GOV&title=1.&article=1.">California Public Records Act</a>
+  by copying and pasting the following URL into the form:
+  <p><code>https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=7.&chapter=3.5.&lawCode=GOV&title=1.&article=1.</code></p>
+</p>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<ul>
+  {% for message in messages %}
+ 	<li>{{ message[1] }}</li>
+{% endfor %}</ul>
+{% endif %}
+{% endwith %}
+<form action="" method="post">
+{{form.csrf}}
+  <div class="input text"><br>{{ form.name }}</div>
+<div class="input submit">
+                <input type="submit" value="Submit"></div>
+</form>
+{% if cited %}
+{{cited|safe}}
+{% endif %}
+</center>
