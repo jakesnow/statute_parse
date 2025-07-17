@@ -2,21 +2,11 @@ import re
 import sys
 import copy
 
-from flask import Flask, render_template, flash, request
-from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
-from wtforms.validators import DataRequired
+from pprint import pprint
 
 import requests
 from bs4 import BeautifulSoup
 
-
-app = Flask(__name__)
- 
-# @app.route("/")
-# def hello():
-#   return "Hello World, from Python with forms!"
- 
-# app.run()
 
 
 def line_cite(line, cite, css_class):
@@ -1544,6 +1534,8 @@ def filter_html(html_content):
     headings = soup.find_all(["h3", "h4", "h5", "h6", "p"])
     for line in headings:
         # print(type(line))
+        style = line.get("style", "")
+        pattern = re.compile(r"margin-left\s*:\s*\d+\.?\d*em")
         line_text = line.get_text().strip()
         if line.name == "h3":
             filtered_statute.append(("bill_heading", "", line_text))
@@ -1560,7 +1552,7 @@ def filter_html(html_content):
                 section = section[:-1]
 
             filtered_statute.append(("law_heading", section, line_text))
-        elif "style" in line.attrs and line["style"] == "margin:0;display:inline;":
+        elif "style" in line.attrs and (style == "margin:0;display:inline;" or pattern.search(style)):
 
             # This is standard space -------------------v
             triple_subsection = re.match(
@@ -1593,6 +1585,8 @@ def filter_html(html_content):
 
             else:
                 filtered_statute.append(("paragraph", "", line_text))
+
+    # pprint(filtered_statute) #for debugging
 
     return filtered_statute
 
@@ -1683,12 +1677,6 @@ def format_statute(law_text, law_info, template, final_name):
 
     return ccpa_revised
 
-# App config.
-# DEBUG = True
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.config['SECRET_KEY'] = '7d441f27d441f27567d441f2b6176a'
-
 
 default_law_info = {
     "label_hierarchy": {
@@ -1700,29 +1688,8 @@ default_law_info = {
     },
 }
 
-
-
-class ReusableForm(Form):
-  name = TextAreaField('URL:', render_kw={"rows": 3, "cols": 80}, validators=[DataRequired()])
-
-  @app.route("/", methods=['GET', 'POST'])
-  def hello():
-    form = ReusableForm(request.form)
-    # form = request.form
-    # print(form.errors)
-    linked_text = "None yet."
-    if request.method == 'POST':
-      text_w_cites=request.form['name']
-      # print(name)
-    # elif request.method == 'GET':
-    #   statute_url = request.args['statute_url']
-    #   # linked_text = format_statute(statute_url, default_law_info, "index_template_general.html", "generic_out.html")
-    #   flash("GET DETECTED:" + str(request.args))
-    if form.validate():
-      # Save the comment here.
-      linked_text = format_statute(text_w_cites, default_law_info, "index_template_general.html", "generic_out.html")
-      flash('Success!')
-    return render_template('hello.html', form=form, cited=linked_text)
-
-# if __name__ == "__main__":
-app.run()
+if __name__ == "__main__":
+    leginfo_url = input("Enter leginfo url for statute (bills won't work yet): ")
+    linked_text = format_statute(leginfo_url, default_law_info, "index_template_general.html", "generic_out.html")
+    with open("statute.html", "w", encoding="utf-8") as file:
+        file.write(linked_text)
